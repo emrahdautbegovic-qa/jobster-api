@@ -1,16 +1,25 @@
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const { ensureAuth, ensureGuest } = require('../middleware/auth');
+const router = express.Router();
+const Note = require('../models/Note');
+router.get('/', ensureGuest, (req, res) => {
+  res.render('login', {
+    layout: 'login',
+  });
+});
 
-
-router.get('/',(req,res)=>{
-    res.render('login',
-    {
-        layout: 'login'
+router.get('/dashboard', ensureAuth, async (req, res) => {
+  try {
+    const notes = await Note.find({ user: req.user.id }).lean();
+    //  console.log(notes);
+    res.render('dashboard', {
+      name: req.user.firstName,
+      notes,
+      imgSrc: req.user.image,
     });
-})
+  } catch (err) {
+    console.log(err);
+  }
+});
 
-router.get('/dashboard',(req,res)=>{
-    res.render('dashboard')
-})
-
-module.exports = router
+module.exports = router;
